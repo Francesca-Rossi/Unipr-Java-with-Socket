@@ -1,0 +1,12 @@
+package ui.views.menu;
+
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import ui.models.menu.EmployeeItems;
+
+public interface IMenu<T> {
+    VBox getMenu();
+    HBox item(T item);
+    void getController(T item);
+
+}

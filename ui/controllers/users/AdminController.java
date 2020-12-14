@@ -1,0 +1,81 @@
+package ui.controllers.users;
+
+import it.unipr.ingegneria.ClientSocket;
+import it.unipr.ingegneria.entities.user.User;
+import it.unipr.ingegneria.entities.user.Admin;
+import it.unipr.ingegneria.utils.Type;
+import javafx.scene.layout.BorderPane;
+import ui.api.IController;
+import ui.controllers.LoginController;
+import ui.views.component.panes.MainPane;
+import ui.views.response.RegistrationAdminSuccess;
+import ui.views.forms.users.AdminForm;
+import ui.views.menu.AdminMenu;
+import ui.views.menu.Menu;
+import ui.views.response.Error;
+import ui.views.views.UserProfile;
+
+
+public class AdminController extends  UserController implements IController<AdminController> {
+    private AdminForm form;
+    private UserProfile adminProfile;
+    private ClientSocket clientSocket;
+    private Menu menu;
+
+    public AdminController(ClientSocket clientSocket){
+        this.clientSocket=clientSocket;
+    }
+    public AdminController(ClientSocket clientSocket, Menu adminMenu){
+        this.clientSocket=clientSocket;
+        this.menu=adminMenu;
+
+    }
+    public void getProfile(User userSignIn){
+
+        if((menu==null)||(menu.getClass()!=AdminMenu.class)){
+            this.menu=new AdminMenu(clientSocket, this, userSignIn);
+        }
+        this.adminProfile =new UserProfile(userSignIn);
+        BorderPane mainView= new MainPane().setMainView(this.menu.getMenu(),adminProfile.getGrid());
+        super.setBorderStage(adminProfile.getTitle(),mainView );
+        super.getStage().show();
+    }
+
+    public void register(String name, String surname, String email, String password){
+        try {
+
+            String msgSuccess = "Admin registration whit success";
+            String msgError = "Error to registration Admin";
+
+            Admin user = (Admin) this.clientSocket.createUser(super.createUser(name, surname, email, password, Type.ADMIN));
+            System.out.println("ID:" + user.getId() + "email:" + user.getEmail());
+            super.getStage().close();
+            if (user != null) {
+                RegistrationAdminSuccess success = new RegistrationAdminSuccess(form.getTitle(), msgSuccess, "Login", this);
+                super.setGridStage(success.getTitle(), success.getGrid(new LoginController(clientSocket)));
+                super.getStage().show();
+            } else {
+                Error error = new Error(form.getTitle(), msgError);
+                BorderPane mainView= new MainPane().setMainView(this.menu.getMenu(),error.getGrid());
+                super.setBorderStage(error.getTitle(), mainView);
+                super.getStage().show();
+            }
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.toString());
+        }
+    }
+    public void getForm(){
+
+        this.form =new AdminForm();
+        super.setGridStage(form.getTitle(), form.getGrid(this) );
+        super.getStage().show();
+    }
+
+
+    @Override
+    public AdminController getController() {
+        return this;
+    }
+}
